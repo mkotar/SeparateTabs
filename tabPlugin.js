@@ -1,13 +1,12 @@
 (function ( $ ) {
 
-	$.fn.tabPlugin = function (opts) {
-		var tabList = [],
-			tempTabList = [];
+	$.fn.separateTabs = function (opts) {
+		var tabList = [];
 
 		var defaults = {
-			pluginName: 'tabPlugin',
-			groupBy: false,
-			grouping: false,
+			dataCollection: false,
+			sortBy: false,
+			sorting: false,
 			effect: 'fade',
 			duration: 'fast',
 
@@ -20,7 +19,6 @@
 
 		var options = $.extend({}, defaults, opts);
 
-
 		var templates = {
 			navContainer: function () {
 				return '<ul class="'+options.navContainerClass+'"></ul>';
@@ -28,12 +26,80 @@
 			paneContainer: function() {
 				return '<div class="'+options.paneContainerClass+'"></div>';
 			},
-			nav: function (tabID, name, close) {
-				return '<li data-id="'+tabID+'" class="'+tabID+' '+options.navItem+'">NAV + '+name+'</li>';
+			nav: function (tab_id, name, closing) {
+				var close = '';
+				if(closing) {
+					close = this.close();
+				}
+
+				return '<li data-id="'+tab_id+'" class="'+tab_id+' '+options.navItem+'">'+name+close+'</li>';
 			},
-			pane: function (tabID, name) {
-				return '<div class="'+tabID+' '+options.paneItem+'">'+name+'</div>';
+			pane: function (tab_id, name) {
+				return '<div class="'+tab_id+' '+options.paneItem+'">'+name+'</div>';
+			},
+			close: function() {
+				return ' <span>[x]</span>';
 			}
+		};
+
+		var isFunction = function (possibleFunction) {
+			return (typeof(possibleFunction) == typeof(Function));
+		}
+
+		var defaultSort = function(a,b) {
+			if (options.sortBy.indexOf(a.type) > options.sortBy.indexOf(b.type))
+		      return 1;
+		    if (options.sortBy.indexOf(b.type) < options.sortBy.indexOf(b.type))
+		      return -1;
+		    return 0;
+		};
+
+		var applySorting = function() {
+			var result = [];
+
+			if(!options.sortBy) {
+				return; 
+			}
+
+			if(isFunction(options.sorting)) {
+				tabList.sort(function(a,b){
+					return options.sorting(a,b,options.sortBy);
+				});
+				return;
+			}
+
+			tabList.sort(function(a,b) {
+				return defaultSort(a,b);
+			});
+		};
+
+		var getAllTabs = function() {
+			console.log('All Tabs', tabList);
+		};
+
+		var updateTabName = function (tab_id, name, closing) {
+			var close = '';
+			if(closing) {
+				close = templates.close();
+			}
+			this.el.find('li.'+tab_id).first()[0].innerHTML = name+close;
+		};
+
+		var tab = function (params) {
+			var that = this;
+			this.tab_title  = params.tab_title;
+			this.tab_id = params.tab_id;
+			this.closeTab = params.closeTab;
+			this.type = params.type;
+			
+			this.setName = function(newTabTitle) {
+				that.tab_title = newTabTitle;
+				updateTabName(that.tab_id, newTabTitle, that.closeTab);
+			};
+
+			this.get = function(parameter) {
+				return this[parameter];
+			};
 		};
 
 		var generateUniqueID = function() {
@@ -50,15 +116,11 @@
 
 			clearHTMLelement(this.el.find('.'+options.navContainerClass));
 			$.each(tabList, function(index, item) {
-				name = item.name || item.type;
-				navContent += templates.nav(item.id, name);
+				name = item.tab_title || item.type;
+				navContent += templates.nav(item.tab_id, name, item.closeTab);
 			});
 
 			this.el.find('.'+options.navContainerClass)[0].innerHTML = navContent;
-		};
-
-		var removeNav = function() {
-
 		};
 
 		var renderPane = function(tabID, name) {
@@ -67,71 +129,66 @@
 			current += templates.pane(tabID, name); 
 
 			this.el.find('.'+options.paneContainerClass)[0].innerHTML = current;
+			return true;
 		};
+
+		var removeNav = function(tab_id) {
+			this.el.find('.'+options.navContainerClass).first().find('.'+tab_id).fadeOut().remove();
+			getAllTabs();
+		};
+
 
 		var removePane = function()  {
 
 		};
 
-		var isFunction = function (possibleFunction) {
-			return (typeof(possibleFunction) == typeof(Function));
-		}
-
-		this.getAllTabs = function() {
-			console.log('All Tabs', tabList);
-		};
-
-		var setActive = function (id) {
+		var setActive = function (tabId) {
 			this.el.find('.active').each(function(index, item) {
 				$(item).removeClass('active');
 			});
-
-			this.el.find('.'+id).addClass('active');
-		};
-
-		var applyGrouping = function() {
-			var result = [];
-			if(options.groupBy) {
-				$.each(options.groupBy, function(index, sortOption) {
-					tempTabList[sortOption] = $.grep(tabList, function(sortBy){
-						return (sortBy.type === sortOption);
-					});
-				});
-
-				$.each(options.groupBy, function(index, sortOption) {
-					result = $.merge(result, tempTabList[sortOption]);
-				});
-				tabList = result;
-			}
+			this.el.find('.'+tabId).addClass('active');
 		};
 
 		var clickOnTab = function () {
 			this.el.find('.'+options.navContainerClass).on('click', 'li', function(item) {
-				var id = $(item.target).data('id');
-				setActive(id);
+				var tab_id = $(item.target).data('id');
+				setActive(tab_id);
 			})
 		};
 
-		this.addTab = function(type, name) {
-			var id = generateUniqueID();
-			tabList.push({type: type, id: id, name: name});
-
-			if(isFunction(options.grouping)) {
-				options.grouping();
-			} else {
-				applyGrouping();
-			}	
-
-			var theName = name || type;
-			renderNavStrip();
-			renderPane(id, theName);
-			setActive(id);
-			return id;
+		var closeTabIcon = function () {
+			this.el.find('.'+options.navContainerClass).on('click', 'li span', function(item) {
+				var tab_id = $(item.target).parent().data('id');
+				removeTab(tab_id);
+			});
 		};
 
-		this.removeTab = function() {
-			removeNav();
-			removePane();
+		this.addTab = function(params) {
+			var tab_id = generateUniqueID(),
+				newTab = new tab({
+					tab_id: tab_id, 
+					type: params.type, 
+					closeTab: params.closeTab || true, 
+					tab_title: params.tab_title || ''
+				});
+
+			tabList.push(newTab);
+			applySorting();
+
+			var theName = name || params.type;
+
+			renderNavStrip();
+			if (!renderPane(tab_id, theName)) {
+				return false;
+			}
+
+			setActive(tab_id);
+			return newTab;
+		};
+
+		var removeTab = function(tab_id) {
+			removeNav(tab_id);
+			removePane(tab_id);
 		};
 
 		var init = function(element) {
@@ -139,8 +196,10 @@
 			this.el[0].innerHTML = templates.navContainer() + templates.paneContainer();
 
 			clickOnTab();
+			closeTabIcon();
 		};
 
+		this.getAllTabs = getAllTabs;
 		return this.each( function() {
 			init(this);	
 		});

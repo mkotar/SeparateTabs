@@ -1,0 +1,4 @@
+Simple plugin that allows to keep tabs separated from other modules and connect them with any data-collection (for example: Backbone's Collection).
+
+1. You easily manage tabs (CRUD). 
+2. You will get a reference to TAB (title and container).

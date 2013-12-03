@@ -30,3 +30,7 @@ h1 {
 li.active {
 	font-weight: bold;
 }
+
+li span {
+	cursor: pointer;
+}
