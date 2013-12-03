@@ -1,0 +1,32 @@
+/* global */
+body,
+html {
+	margin: 0px;
+	padding: 10px;
+	font-family: Arial, Verdana;
+	font-size: 12px;
+	background: #f4f4f4;
+}
+
+h1 {
+	margin: 0px;
+	padding: 0px;
+	font-size: 20px;
+	line-height: 40px;
+	border-bottom: 1px solid #ccc;
+}
+
+.pane-item {
+	margin: 10px;
+	padding: 10px;
+	background: #fff;
+	display: none;
+}
+
+.pane-container > .active {
+	display: block;
+}
+
+li.active {
+	font-weight: bold;
+}
