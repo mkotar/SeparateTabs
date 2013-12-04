@@ -1,32 +1,35 @@
 $(document).ready(function() {
-	separateTabs = $('.putTabsHere').separateTabs({
-		sortBy: ['start', 'directory', 'single'],
-		// sorting: function(a, b, sortBy) {
-		// 	if (sortBy.indexOf(a.type) < sortBy.indexOf(b.type))
-		//       return 1;
-		//     if (sortBy.indexOf(b.type) > sortBy.indexOf(b.type))
-		//       return -1;
-		//     return 0;
-		// }
-	});
+    separateTabs = $('.putTabsHere').separateTabs({
+        sortBy: ['start', 'directory', 'single'],
+//		sorting: function(a, b, sortBy) {
+//			if (sortBy.indexOf(a.getType()) < sortBy.indexOf(b.getType()))
+//		       return 1;
+//		     if (sortBy.indexOf(b.getType()) > sortBy.indexOf(b.getType()))
+//		       return -1;
+//		     return 0;
+//		}
+    });
 
-	separateTabs.addTab({type: 'directory'});
-	separateTabs.addTab({type: 'directory'});
-	separateTabs.addTab({type: 'single'});
-	separateTabs.addTab({type: 'directory', tab_title: 'jakas nazwa'});
-	separateTabs.addTab({type: 'start'});
+    separateTabs.addTab({type: 'directory'});
+    separateTabs.addTab({type: 'directory'});
+    separateTabs.addTab({type: 'single'});
+    separateTabs.addTab({type: 'directory', tab_title: 'jakas nazwa'});
+    separateTabs.addTab({type: 'start'});
 
-	var x = separateTabs.addTab({
-			type: 'single'
-		});
+    var tab = separateTabs.addTab({
+        type: 'single'
+    });
 
-	var Controller = function(tab) {
-		return {
-			setNewName: tab.setName
-		}
-	};
+    var Controller = function(tab) {
+        return {
+            setNewName: tab.setName,
+            test: function() {
+                console.log(tab.tab_id)
+            }
+        }
+    };
 
-	theController = new Controller(x);
-	theController.setNewName('New Name');
-	separateTabs.getAllTabs();
+    theController = new Controller(tab);
+    theController.setNewName('New Name');
+    separateTabs.getAllTabs();
 });
