@@ -32,4 +32,6 @@ $(document).ready(function() {
     theController = new Controller(tab);
     theController.setNewName('New Name');
     separateTabs.getAllTabs();
+
+    separateTabs.removeTab(tab.getId())
 });

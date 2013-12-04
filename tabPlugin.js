@@ -1,9 +1,14 @@
 (function ($) {
 
     $.fn.separateTabs = function (opts) {
-        var tabList = [];
+        var tabList = [],
+            defaults, options, templates, tab,
+            isFunction, generateUniqueTabId, defaultSort, applySorting,
+            clearHTMLelement, setActive, updateTabName, addListeners,
+            renderNavStrip, renderPane, removeNav, removePane,
+            getAllTabs, addTab, removeTab, init;
 
-        var defaults = {
+        defaults = {
             dataCollection: false,
             sortBy: false,
             sorting: false,
@@ -17,9 +22,9 @@
             paneItem: 'pane-item'
         };
 
-        var options = $.extend({}, defaults, opts);
+        options = $.extend({}, defaults, opts);
 
-        var templates = {
+        templates = {
             navContainer: function () {
                 return '<ul class="' + options.navContainerClass + '"></ul>';
             },
@@ -42,19 +47,21 @@
             }
         };
 
-        var isFunction = function (possibleFunction) {
+        isFunction = function (possibleFunction) {
             return (typeof(possibleFunction) == typeof(Function));
         };
 
-        var defaultSort = function (a, b) {
-            if (options.sortBy.indexOf(a.getType()) > options.sortBy.indexOf(b.getType()))
+        defaultSort = function (a, b) {
+            if (options.sortBy.indexOf(a.getType()) > options.sortBy.indexOf(b.getType())) {
                 return 1;
-            if (options.sortBy.indexOf(b.getType()) < options.sortBy.indexOf(b.getType()))
+            }
+            if (options.sortBy.indexOf(b.getType()) < options.sortBy.indexOf(b.getType())) {
                 return -1;
+            }
             return 0;
         };
 
-        var applySorting = function () {
+        applySorting = function () {
             if (!options.sortBy) {
                 return;
             }
@@ -71,11 +78,11 @@
             });
         };
 
-        var getAllTabs = function () {
+        getAllTabs = function () {
             console.log('All Tabs', tabList);
         };
 
-        var updateTabName = function (tab_id, name, closing) {
+        updateTabName = function (tab_id, name, closing) {
             var close = '';
             if (closing) {
                 close = templates.close();
@@ -84,7 +91,7 @@
             this.el.find('li.' + tab_id).first()[0].innerHTML = name + close;
         };
 
-        var tab = function (params) {
+        tab = function (params) {
             var tab_title = params.tab_title,
                 tab_id = params.tab_id,
                 closeTab = params.closeTab,
@@ -112,15 +119,15 @@
             };
         };
 
-        var generateUniqueID = function () {
+        generateUniqueTabId = function () {
             return new Date().getTime() + tabList.length;
         };
 
-        var clearHTMLelement = function (element) {
+        clearHTMLelement = function (element) {
             element[0].innerHTML = '';
         };
 
-        var renderNavStrip = function () {
+        renderNavStrip = function () {
             var navContent = '',
                 name;
 
@@ -133,7 +140,7 @@
             this.el.find('.' + options.navContainerClass)[0].innerHTML = navContent;
         };
 
-        var renderPane = function (tabID, name) {
+        renderPane = function (tabID, name) {
             var current = '';
             current += this.el.find('.' + options.paneContainerClass)[0].innerHTML;
             current += templates.pane(tabID, name);
@@ -142,39 +149,37 @@
             return true;
         };
 
-        var removeNav = function (tab_id) {
+        removeNav = function (tab_id) {
             this.el.find('.' + options.navContainerClass).first().find('.' + tab_id).fadeOut().remove();
             getAllTabs();
         };
 
 
-        var removePane = function (tab_id) {
+        removePane = function (tab_id) {
 
         };
 
-        var setActive = function (tabId) {
+        setActive = function (tabId) {
             this.el.find('.active').each(function (index, item) {
                 $(item).removeClass('active');
             });
             this.el.find('.' + tabId).addClass('active');
         };
 
-        var clickOnTab = function () {
+        addListeners = function () {
             this.el.find('.' + options.navContainerClass).on('click', 'li', function (item) {
                 var tab_id = $(item.target).data('id');
                 setActive(tab_id);
-            })
-        };
+            });
 
-        var closeTabIcon = function () {
             this.el.find('.' + options.navContainerClass).on('click', 'li span', function (item) {
                 var tab_id = $(item.target).parent().data('id');
                 removeTab(tab_id);
             });
         };
 
-        var addTab = function (params) {
-            var tab_id = generateUniqueID(),
+        addTab = function (params) {
+            var tab_id = generateUniqueTabId(),
                 newTab = new tab({
                     tab_id: tab_id,
                     type: params.type,
@@ -196,24 +201,24 @@
             return newTab;
         };
 
-        var removeTab = function (tab_id) {
+        removeTab = function (tab_id) {
             removeNav(tab_id);
             removePane(tab_id);
         };
 
-        var init = function (element) {
+        init = function (element) {
             this.el = $(element);
             this.el[0].innerHTML = templates.navContainer() + templates.paneContainer();
 
-            clickOnTab();
-            closeTabIcon();
+            addListeners();
         };
 
         this.addTab = addTab;
         this.getAllTabs = getAllTabs;
         this.removeTab = removeTab;
+
         return this.each(function () {
-            init(this);
+            return init(this);
         });
     };
 
